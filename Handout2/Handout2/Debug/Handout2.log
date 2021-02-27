@@ -1,0 +1,5 @@
+﻿  Source.cpp
+D:\ASE_CSIE\coduri_programare\an2_sem1\Poo\Handout2\Handout2\Source.cpp(178,20): warning C4018: '<': signed/unsigned mismatch
+D:\ASE_CSIE\coduri_programare\an2_sem1\Poo\Handout2\Handout2\Source.cpp(179,21): warning C4018: '<': signed/unsigned mismatch
+D:\ASE_CSIE\coduri_programare\an2_sem1\Poo\Handout2\Handout2\Source.cpp(90): warning C4715: 'matrice_unitate': not all control paths return a value
+  Handout2.vcxproj -> D:\ASE_CSIE\coduri_programare\an2_sem1\Poo\Handout2\Debug\Handout2.exe
