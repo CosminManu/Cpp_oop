@@ -69,8 +69,6 @@ public:
 			return this->variabila;
 		}
 	*/
-
-
 	const int getIdExamen()
 	{
 		return this->idExamen;
@@ -120,6 +118,7 @@ public:
 		else throw exception();
 	}
 
+	//validare pe nota
 	void setNota(int _nota)
 	{
 		if (_nota > 0 && _nota <= 10) {
@@ -155,7 +154,6 @@ public:
 		if (_nrSub > 0 && _punctajSub != nullptr)
 		{
 			this->nrSubiect = _nrSub;
-			
 			this->punctajSubiecte = new float[this->nrSubiect];		//atatea pct cate subiecte (new float de this.)
 			for (int i = 0; i < this->nrSubiect; ) {
 				this->punctajSubiecte[i] = _punctajSub[i];
@@ -166,10 +164,7 @@ public:
 			this->nrSubiect = 0;
 			this->punctajSubiecte = nullptr;
 		}
-			
-
 	}
-
 
 	//constructor de copiere --- se apeleaza atunci cand dorim/vrem sa cream 
 	//un obiect nou pe baza altuia deja existent (clone() din Java)
@@ -249,8 +244,254 @@ public:
 		}
 		return *this;		//fara prima referinta& se apel construc copiere
 	}
+
+	//METODE  -- fct  interiorul clasei care primesc *this
+	//suma
+	float totalPunctajeSubiect()
+	{
+		float total = 0;
+		if (this->nrSubiect > 0 && this->punctajSubiecte != nullptr) {
+			for (int i = 0; i < this->nrSubiect; i++) {
+				total += this->punctajSubiecte[i];
+			}
+		}
+		return total;
+	}
 	
-	//======================================Tutoring vin=======================
+	float mediePunctaje()
+	{
+		float total = totalPunctajeSubiect();
+		float medie = total / this->nrSubiect;
+	}
+
+	float minPunctaje()
+	{
+		float min = this->punctajSubiecte[0];
+		for (int i = 0; i < this->nrSubiect; i++) {
+			if (min > this->punctajSubiecte[i]) {
+				min = this->punctajSubiecte[i];
+			}
+		}
+		return min;
+	}
+
+	float maxPunctaje()
+	{
+		float max = this->punctajSubiecte[0];
+		for (int i = 0; i < this->nrSubiect; i++)
+		{
+			if (max < this->punctajSubiecte[i])
+			{
+				max = this->punctajSubiecte[i];
+			}
+		}
+		return max;
+	}
+
+	bool areRestanta()
+	{
+		return this->nota < 5;
+	}
+
+	bool examenulEsteRestanta()
+	{
+		return data[1] == 7;
+	}
+
+	//adaug punctaj in vect de float*
+	//fac copie vect vechi, sterg vect vechi, maresc dim this +1, aloc mem
+	// copiez in vect nou si adaug pe ultima poz
+	void adaugaSubiect(float punctaj)
+	{
+		Examen copie = *this;
+		delete[] this->punctajSubiecte;
+		this->nrSubiect++;
+		this->punctajSubiecte = new float[this->nrSubiect];
+		for (int i = 0; i < copie.nrSubiect; i++) 
+		{
+			this->punctajSubiecte[i] = copie.punctajSubiecte[i];
+		}
+		this->punctajSubiecte[this->nrSubiect - 1] = punctaj;
+	}
+
+	//fac copie vect vechi, parcurg ca sa vad de cate ori (int n) apare param punctaj,
+	//sterg vect vechi this, aloc mem in this de (dim initiala = dim initiala - n), parcurg copia si compar 
+	// cu param, daca e != pun in this si cresc pozitie
+	void eliminaSubiect(float punctaj)
+	{
+		Examen copie = *this;
+		int nr = 0;//vom stoca aici de cate ori se gaseste numarul cautat in vector
+		for (int i = 0; i < this->nrSubiect; i++)
+		{
+			if (punctaj == this->punctajSubiecte[i])
+			{
+				nr++;
+			}
+		}
+		delete[]this->punctajSubiecte;
+		this->nrSubiect = this->nrSubiect - nr;
+		this->punctajSubiecte = new float[this->nrSubiect];
+		int pozitie = 0;
+		for (int i = 0; i < copie.nrSubiect; i++)
+		{
+			if (punctaj != copie.punctajSubiecte[i])
+			{
+				this->punctajSubiecte[pozitie] = copie.punctajSubiecte[i];
+				pozitie++;
+			}
+		}
+	}
+
+	//OPERATORI >> << () cast []-indexare ++ preincreme += postincremen
+	
+	
+	//friend --- ofera accesul la atributele din zona privata a unei clase 
+	// fara sa aiba pointerul this;
+	//friend se foloseste neaparat(ca nu se poate fara) atunci cand 
+	// avem nevoie de un operator ce implica(are nevoie) de 2 termeni, unul in stanga altul in dreapta
+	//iar cel din stanga nu este de tipul clasei --- ex(cout<<e1, cin>>e2;  e1= 44+e2;)
+
+	friend ostream& operator<<(ostream&, const Examen);		//op <<	afisare OSTREAM - implemen afara clasei
+	friend istream& operator>>(istream&, Examen&);			//op >>	citire ISTREAM - implemen afara clasei
+
+	//[] op indexare
+	float operator[] (int pozitie)		//float& pt a putea modif de la o adresa
+	{
+		if (pozitie > 0 && pozitie < this->nrSubiect) {
+			return this->punctajSubiecte[pozitie];
+		}
+		else throw exception();
+	}
+
+	//() op functie
+	int operator()(int marire) {
+		if (this->nota < 10) {
+			return this->nota + marire;
+		}
+		else return -1;
+	}
+
+	//cast implicit		--apel cast implicit/explicit
+	/*operator string()
+	{
+		return this->profesor;
+	}*/
+	//cast explicit		-- apel se fol cast exlicit la tipul folosit (string)e2
+	explicit operator string()
+	{
+		return this->profesor;
+	}
+
+	//operatori relationali -- >, <, >=, ==, !
+	//cum func op si ce sens ii pot da in clasa mea
+	bool operator<(int nr)
+	{
+		return this->nrSubiect < nr;
+	}
+	bool operator>(Examen e)
+	{
+		return this->nota > e.nota;
+	}
+	bool operator==(Examen e)
+	{
+		return this->profesor == e.profesor;
+	}
+	bool operator!()
+	{
+		bool restanta = 0;
+		if (this->nota > 4)
+		{
+			restanta = 0;
+			this->nota = 2;
+		}
+		else
+		{
+			restanta = 1;
+			this->nota = 7;
+		}
+		return restanta;
+	}
+	bool operator~()
+	{
+		return this->nota > 4;
+	}
+
+	//operator += post incrementat(cu parametru)--- a=b++;
+	// 1)a=b; atribuire 2)b++ adunare
+	Examen operator ++(int i)
+	{
+		Examen copie = *this;
+		if (this->nota <= 9)
+		{
+			this->nota++;
+		}
+		return copie;
+	}
+
+	//operator ++ pre incrementat --- a= ++b; 
+	//1) b++; adunare 2)a = b atribuire
+	Examen& operator ++()
+	{
+		if (this->nota <= 9)
+		{
+			this->nota++;
+		}
+		return *this;
+	}
+
+	//operator +=
+	Examen& operator +=(float punctaj)
+	{
+		Examen copie = *this;
+		delete[]this->punctajSubiecte;
+		this->nrSubiect++;
+		this->punctajSubiecte = new float[this->nrSubiect];
+		for (int i = 0; i < copie.nrSubiect; i++)
+		{
+			this->punctajSubiecte[i] = copie.punctajSubiecte[i];
+		}
+		this->punctajSubiecte[this->nrSubiect - 1] = punctaj;
+		return *this;
+	}
+
+	//operator -=
+	Examen& operator -=(float punctaj)
+	{
+		Examen copie = *this;
+		int nr = 0;//vom stoca aici de cate ori se gaseste numarul cautat in vector
+		for (int i = 0; i < this->nrSubiect; i++)
+		{
+			if (punctaj == this->punctajSubiecte[i])
+			{
+				nr++;
+			}
+		}
+		delete[]this->punctajSubiecte;
+		this->nrSubiect = this->nrSubiect - nr;
+		this->punctajSubiecte = new float[this->nrSubiect];
+		int pozitie = 0;
+		for (int i = 0; i < copie.nrSubiect; i++)
+		{
+			if (punctaj != copie.punctajSubiecte[i])
+			{
+				this->punctajSubiecte[pozitie] = copie.punctajSubiecte[i];
+				pozitie++;
+			}
+		}
+		return *this;
+	}
+
+	static float medieNoteExamene(int nrEx, Examen* vect)
+	{
+		float total = 0;
+		for (int i = 0; i < nrEx; i++)
+		{
+			total += vect[i].getNota();
+		}
+		return total / nrEx;
+	}
+
+	//======================================Tutoring vin==============================================
 	//op+ : ob + valoare (e4 + 10)
 	Examen operator+(int valoare) {
 		Examen copie = *this;
@@ -302,71 +543,7 @@ public:
 		{
 			copie.punctajSubiecte[i] = ex.punctajSubiecte[i - this->nrSubiect];
 		}
-	}
-
-	friend ostream& operator<<(ostream& out, const Examen e)
-	{
-		out << "ID:" << e.idExamen << endl;
-		out << "Materie:" << e.materie << endl;
-		out << "Profesor:" << e.profesor << endl;
-		out << "Nota:" << e.nota << endl;
-		out << "Data:";
-		for (int i = 0; i < 3; i++)
-		{
-			out << e.data[i] << "/";
-
-		}
-		out << endl;
-		out << "Numar Subiecte:" << e.nrSubiect << endl;
-		out << "Punctaj subiecte: ";
-		for (int i = 0; i < e.nrSubiect; i++)
-		{
-			out << e.punctajSubiecte[i] << " | ";
-
-		}
-		out << endl;
-		return out;
-	}
-	friend istream& operator>>(istream& in, Examen& e)
-	{
-		if (e.materie != NULL)
-		{
-			delete[]e.materie;
-		}
-		if (e.punctajSubiecte != NULL)
-		{
-			delete[]e.punctajSubiecte;
-		}
-		//op>> pentru char*
-		cout << "Materie:";
-		in >> ws;
-		char aux[250];
-		in.getline(aux, 249);
-		e.materie = new char[strlen(aux) + 1];
-		strcpy(e.materie, aux);
-		//op>> pentru string
-		cout << "Profesor:";
-		getline(in, e.profesor);
-		//op>> pentru int
-		cout << "Nota:";
-		in >> e.nota;
-		//op>> pentru int static sau int*
-		cout << "Data(zi/ luna/ an):";
-		for (int i = 0; i < 3; i++)
-		{
-			in >> e.data[i];
-		}
-		//op>> pentru int
-		cout << "Numar Subiecte:";
-		in >> e.nrSubiect;
-		//op>> pentru int static sau int*
-		cout << "Punctaj Subiecte:";
-		e.punctajSubiecte = new float[e.nrSubiect];
-		for (int i = 0; i < e.nrSubiect; i++)
-		{
-			in >> e.punctajSubiecte[i];
-		}
-		return in;
+		return copie;
 	}
 
 	friend ofstream& operator<<(ofstream& out, const Examen e)
@@ -409,7 +586,7 @@ public:
 		char aux[250];
 		in.getline(aux, 249);
 		e.materie = new char[strlen(aux) + 1];
-		strcpy(e.materie, aux);
+		strcpy_s(e.materie, strlen(aux) + 1, aux);
 		//op>> pentru string
 		cout << "Profesor:";
 		getline(in, e.profesor);
@@ -460,13 +637,77 @@ public:
 
 int Examen::contor = 1;
 
+ostream& operator<<(ostream& out, const Examen e)
+{
+	out << "ID:" << e.idExamen << endl;
+	out << "Materie:" << e.materie << endl;
+	out << "Profesor:" << e.profesor << endl;
+	out << "Nota:" << e.nota << endl;
+	out << "Data:";
+	for (int i = 0; i < 3; i++)
+	{
+		out << e.data[i] << "/";
 
-//char* materie;
-//string profesor;
-//int nota;
-//int data[3];		//vect alocat static pt ca ii cunoastem deja dimens (3: zi luna an)
-//int nrSubiect;
-//float* punctajSubiecte;
+	}
+	out << endl;
+	out << "Numar Subiecte:" << e.nrSubiect << endl;
+	out << "Punctaj subiecte: ";
+	for (int i = 0; i < e.nrSubiect; i++)
+	{
+		out << e.punctajSubiecte[i] << " | ";
+
+	}
+	out << endl;
+	return out;
+}
+
+//la citire intai dezalocam pointerii
+//si apoi alocam iar
+istream& operator>>(istream& in, Examen& e)
+{
+	if (e.materie != NULL)
+	{
+		delete[]e.materie;
+	}
+	if (e.punctajSubiecte != NULL)
+	{
+		delete[]e.punctajSubiecte;
+	}
+	//op>> pentru char*
+	cout << "Materie:";
+	in >> ws;
+	char aux[250];
+	in.getline(aux, 249);		//citire cu spatii
+	e.materie = new char[strlen(aux) + 1];
+	strcpy_s(e.materie, strlen(aux) + 1, aux);
+	
+	//op>> pentru string
+	cout << "Profesor:";
+	getline(in, e.profesor);	//citire cu spatii
+	
+	//op>> pentru int
+	cout << "Nota:";
+	in >> e.nota;
+	
+	//op>> pentru int static sau int*
+	cout << "Data(zi/ luna/ an):";
+	for (int i = 0; i < 3; i++)
+	{
+		in >> e.data[i];	//se da enter
+	}
+	//op>> pentru int
+	cout << "Numar Subiecte:";
+	in >> e.nrSubiect;
+
+	//op>> pentru int static sau int*
+	cout << "Punctaj Subiecte:";
+	e.punctajSubiecte = new float[e.nrSubiect];
+	for (int i = 0; i < e.nrSubiect; i++)
+	{
+		in >> e.punctajSubiecte[i];
+	}
+	return in;
+}
 
 
 //Mostenire/derivare - relatie de is a - trecere de la gen => particul
@@ -513,31 +754,50 @@ int main()
 	Examen e;
 	//char nume[] = "Economie";		il fac 'const' in constructor
 	int data[3] = { 20, 1, 2016 };
-	float pct[] = { 8.8, 9.2, -1, 10 };
+	float pct[] = { 8.8, 9.2, 8.8, 10 };
 	Examen e1(77, "Economie", "Moraru", 9, data, 4, pct);
 
+	cout << "-------------------Getteri---------------------------" << endl;
+	cout << "Materia examen e: " << e.getMaterie() << endl;
+	cout << "Id examen e: " << e.getIdExamen() << endl;
+	cout << "Data examenului e: ";
+	for (int i = 0; i < 3; i++) {
+		cout << e.getData()[i] << "/";
+	}
+	cout <<endl << "Nota e: " << e.getNota() << endl;
+	cout << "Nr subiecte e: " << e.getNrSubiecte() << endl;
+	cout << "Punctaj subiecte e: ";
+	for (int i = 0; i < e.getNrSubiecte(); i++) {
+		cout << e.getPunctajSubiecte()[i] << " | ";
+	}
+	cout << endl << endl;
+
+	cout << "Materia examen e1: " << e1.getMaterie() << endl;
+	cout << "Id examen e1: " << e1.getIdExamen() << endl;
+	cout << "Profesor examen e1: " << e1.getProfesor() << endl;
 	//cout << e.getData() << endl;//asa afisam adresa vectorului
+	cout << "Data examenului e1: ";
 	for (int i = 0; i < 3; i++) {
 		cout << e1.getData()[i] << "/";
 
 	}
 	cout << endl;
-
-	//cout << e1.materie << endl;		//inaccesibil (tip private)		=>> Getteri si Setteri
-	cout << e1.getMaterie() << endl;
-	cout << "Punctaj: ";
+	//cout << e1.materie << endl;		//inaccesibil (tip private)		=>> Getteri si Setter
+	cout << "Nota e1: " << e1.getNota() << endl;
+	cout << "Punctaj subiecte e1: ";
 	for (int i = 0; i < e1.getNrSubiecte();) {
 		cout << e1.getPunctajSubiecte()[i] << " | ";
 		i++;
 	}
-	cout << endl;
+	cout << endl << endl;
 
+	cout << "------------------- Setteri---------------------------" << endl;
 	e1.setMaterie("SO");
-	cout << "Materia: " << e1.getMaterie() << endl;
+	cout << "Materia schimbata e1: " << e1.getMaterie() << endl;
 	e1.setMaterie("Biologie");
-	cout << "Materia: " << e1.getMaterie() << endl;
+	cout << "Materia schimbata e1: " << e1.getMaterie() << endl;
+	
 	string nume;
-
 	//do {
 	//	cout << "Introduce ti numele profesor: ";
 	//	cin >> nume;
@@ -548,48 +808,226 @@ int main()
 	//	{
 	//		cout << "Nume prof incorect" << endl << endl;
 	//	}
-	//} while (nume.size() < 3);		//introduci pana cand numele > 2
-	
-	
-	int data1[3] = { 07, 07, 2021 };
-	e1.setData(data1);
+	//} while (nume.size() < 3);		//introduci pana cand numele > 3
+
+	e.setNota(10);
+	cout << "Nota (-1 nu e nota corecta): " << e.getNota() << endl;
+	int dataNoua[3] = { 07, 07, 2021 };
+	e1.setData(dataNoua);
+	cout << "Data noua a examenului e1: ";
 	for (int i = 0; i < 3; i++) {
 		cout << e1.getData()[i] << "/";
 	}
-	cout << endl;
+	cout << endl << endl;
 
+	cout << "------------------- Constructor de copiere---------------------------" << endl;
 	Examen e2 = e1;		//construc copiere
 	//Examen e2(e1); -- ambele forme sunt corecte
-	cout << e2.getMaterie() << endl;
+	cout << "Materia examen e2: " << e2.getMaterie() << endl;
+	cout << "Id examen e2: " << e2.getIdExamen() << endl;
+	cout << "Nota examen e2: " << e2.getNota() << endl;
+	cout << "Profesor examen e2: " << e2.getProfesor() << endl;
 
 	e2.setNota(10);
 	cout <<"Nota (-1 nu e nota corecta): "<< e2.getNota() << endl << endl;
 
+	cout << "Punctaj subiecte e2: ";
+	for (int i = 0; i < e2.getNrSubiecte();) {
+		cout << e2.getPunctajSubiecte()[i] << " | ";
+		i++;
+	}
+	cout << endl;
 	//INT* FLOAT* => parcurse cu for si INDEXATE de i ([i])
 	float pct1[] = { 12.3, 23.6, 23.56, 84, 21};
 	e2.setPunctajSubiecte(5, pct1);
 
+	cout << "Punctaj noi subiecte e2: ";
 	for (int i = 0; i < 5; ) {
-		cout << e2.getPunctajSubiecte()[i] << endl;
+		cout << e2.getPunctajSubiecte()[i] << " | ";
 		i++;
 	}
 	cout << endl;
-	
-	float pct2[] = {34.5, 345.6, 23.98, 10.23, 456.654 };
+	/*float pct2[] = {34.5, 345.6, 23.98, 10.23, 456.654 };
 	e2.setPunctajSubiecte(5, pct2);
 	cout << "Punctaj: ";
 	for (int i = 0; i < 5; i++)
 	{
 		cout << e2.getPunctajSubiecte()[i] << " | ";
 	}
-	cout << endl;
+	cout << endl;*/
 
+	cout <<endl << "------------------- Operator = ---------------------------" << endl;
 	Examen e3;
 	e3 = e2;
 	e1 = e1;
+	float total = e1.totalPunctajeSubiect();
+	cout << "Total punctaje examenul e1: " << total << endl << endl;
+	
+	cout << "Materia examen e3: " << e3.getMaterie() << endl;
+	cout << "Id examen e3: " << e3.getIdExamen() << endl;
+	cout << "Data examenului e3: ";
+	for (int i = 0; i < 3; i++) {
+		cout << e3.getData()[i] << "/";
+	}
+	cout << "Nota e3: " << e3.getNota() << endl;
+	cout << "Nr subiecte e3: " << e3.getNrSubiecte() << endl;
+	cout << "Punctaj subiecte e3: ";
+	for (int i = 0; i < e3.getNrSubiecte(); i++) {
+		cout << e3.getPunctajSubiecte()[i] << " | ";
+	}
+	cout << endl<< "-------------------Sfarsit Operator = ---------------------------" << endl;
+	cout << endl<< "-------------------Metode ---------------------------" << endl;
+	float min = e1.minPunctaje();
+	cout << "cel mai mic punct e1: " << min << endl;
+	float max = e3.maxPunctaje();
+	cout << "cel mai mare punct e2: " << max << endl;
 
+	if (e1.areRestanta())
+	{
+		cout << "Examenul a fost picat!" << endl;
+	}
+	else
+	{
+		cout << "Examenul a fost promovat!" << endl;
+	}
+	cout << "Punctaj vechi: ";
+	for (int i = 0; i < e1.getNrSubiecte(); i++)
+	{
+		cout << e1.getPunctajSubiecte()[i] << " | ";
 
-	//tutoring vineri
+	}cout << endl;
+
+	e1.adaugaSubiect(88);
+	cout << e1.getNrSubiecte() << endl;
+	cout << "Punctaj nou: ";
+	for (int i = 0; i < e1.getNrSubiecte(); i++)
+	{
+		cout << e1.getPunctajSubiecte()[i] << " | ";
+
+	}
+	cout << endl <<endl;
+
+	e1.eliminaSubiect(8.8);
+	cout << "Eliminat 8.8 " << endl;
+	cout << "Punctaj nou: ";
+	for (int i = 0; i < e1.getNrSubiecte(); i++)
+	{
+		cout << e1.getPunctajSubiecte()[i] << " | ";
+
+	}
+	cout << endl;
+	cout << endl << "-------------------Sfarsit Metode ---------------------------" << endl;
+	cout << endl << "------------------Operatori ---------------------------" << endl;
+	cout << e3 << endl<<endl;
+	cout << e2 << endl;
+
+	/*cin >> e;
+	cout << endl << endl;
+	cout << e << endl;
+	*/
+	cout << "Punctaj e1: ";
+	for (int i = 0; i < e1.getNrSubiecte(); i++)
+	{
+		cout << e1.getPunctajSubiecte()[i] << " | ";
+
+	}
+	cout << endl <<"e1[2] = " << e1[2] << endl;		//op index - return this.punctaj[2]
+
+	/*int poz;
+	do
+	{
+		cout << "Introduceti pozitia dorita: ";
+		cin >> poz;
+		try {
+			cout << e1[poz]<<endl;
+		}
+		catch (exception ex)
+		{
+			cout << "Pozitia introdusa este incorecta!" << endl;
+		}
+	} while (poz<0 || poz>= e1.getNrSubiecte());*/
+
+	e3.setNota(5);
+	int nota = e3(2);		// op functie 5 cu 2 7
+	cout << nota << endl;
+
+	cout << (string)e2 << endl;		//op cast explicit
+	cout << endl << "------------------Operatori relationali ---------------------------" << endl;
+
+	if (e1 < 3) {
+		cout << "Examenul la " << e1.getMaterie() << "  are mai putin de 3 subiecte!" << endl;
+	}
+	else if (e2 < 3) {
+		cout << "Examenul la " << e2.getMaterie() << "  are mai putin de 3 subiecte!" << endl;
+	}
+	else if (e3 < 3) {
+		cout << "Examenul la " << e3.getMaterie() << "  are mai putin de 3 subiecte!" << endl;
+	}
+	else {
+		cout << "Toate examenele au peste 3 subiecte." << endl;
+	}
+
+	if (e1 == e2) {
+		cout << "Ambele examene sunt la acelasi profesor!" << endl;
+	}
+	else{
+		cout << "Profi diferiti." << endl;
+	}
+
+	e2.setProfesor("Davidovici");
+	if (e1 == e2) {
+		cout << "Ambele examene sunt la acelasi profesor!" << endl;
+	}
+	else {
+		cout << "Profi diferiti." << endl;
+	}
+
+	cout << endl;
+	if (~e1)
+	{
+		cout << "Nu are restanta!" << endl;
+		cout << e1.getNota() << endl;
+	}
+	else
+	{
+		cout << "Are restanta!" << endl;
+		cout << e1.getNota() << endl;
+	}
+	if (!e1)
+	{
+		cout << "Nu are restanta!" << endl;
+		cout << e1.getNota() << endl;
+	}
+	else
+	{
+		cout << "Are restanta!" << endl;
+		cout << e1.getNota() << endl;
+	}
+
+	cout << "-------------------Operator ++ post si pre ---------------------------" << endl;
+	e3 = e1++;
+	cout << e3 << endl << endl;
+	cout << e1 << endl << endl;
+
+	Examen e4 = ++e1;
+	cout << e4 << endl << endl;
+	cout << e1 << endl << endl;
+	cout << "-------------------Operator += si -= ---------------------------" << endl;
+	e1 += 40;
+	cout << e1 << endl;
+	e1 -= 40;
+	cout << e1 << endl;
+	cout << "-------------------Functie statica ---------------------------" << endl;
+	Examen vectExam[4];
+	vectExam[0] = e;
+	vectExam[1] = e1;
+	vectExam[2] = e2;
+	vectExam[3] = e3;
+	cout << Examen::medieNoteExamene(4, vectExam);
+
+	cout << endl << "-------------------Sfarsit Operatori ---------------------------" << endl;
+
+	cout << endl << "-------------------tutoring vineri ---------------------------" << endl;
 	Examen e5 = e3 + 10;
 	Examen e7 = e5 + e3;
 
