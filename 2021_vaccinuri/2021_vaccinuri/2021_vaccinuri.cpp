@@ -104,7 +104,7 @@ public:
         return this->dataExpirarii;
     }
     
-    //destruct  -dezaloc mem heap
+    //destruct - dezaloc mem heap
     //sterg explicit pointerii
     ~Vaccin()
     {
@@ -142,7 +142,24 @@ public:
     }
 
     friend istream& operator>>(istream&, Vaccin&);       //citire (cin >>)
+    friend ostream& operator<<(ostream&, const Vaccin);        //afisare (cout <<)
 };
+
+ostream& operator<<(ostream& out, const Vaccin v)
+{
+    out << "Producator: " << v.producator << endl;
+    out << "Tara provenienta: " << v.taraProv << endl;
+    out << "Capacitate: " << v.capacitate << endl;
+    out << "Temperatura transport: " << v.tempTransport << endl;
+    out << "Denumire: " << v.denumire << endl;
+    cout << "Data expirarii: ";
+    for (int i = 0; i < 3; i++) {
+        cout << v.dataExpirarii[i]<<".";
+    }
+    cout << endl;
+
+    return out;
+}
 
 
 //char* producator;
@@ -195,22 +212,44 @@ istream& operator>>(istream& i, Vaccin& v)
 
 int Vaccin::serie = 8800;
 
-class Pfizer : public Vaccin
+class VaccinRubeola : public Vaccin
 {
     int bucati;
     string cercetator;
+
 public:
-    Pfizer():Vaccin()
+    VaccinRubeola():Vaccin()
     {
         this->bucati = 0;
         this->cercetator = "N/A";
     }
 
-    /*Pfizer(const char* _producator, const char* _tara, int _cap, float _temp, string _den, int _data[3], int _buc, string _cercet)
-        :Vaccin(_producator, _tara, _cap, _temp, _den, _data[3])
+    VaccinRubeola(const char* _producator, const char* _tara, int _cap, float _temp, string _den, int _data[3], int _buc, string _cercet)
+        :Vaccin(_producator, _tara, _cap, _temp, _den, _data)
     {
+        this->bucati = _buc;
+        this->cercetator = _cercet;
+    }
 
-    }*/
+    VaccinRubeola(const VaccinRubeola& v)
+        :Vaccin(v)
+    {
+        this->bucati = v.bucati;
+        this->cercetator = v.cercetator;
+    }
+
+    ~VaccinRubeola()
+    {
+    }
+
+    VaccinRubeola& operator=(const VaccinRubeola& src)
+    {
+        Vaccin::operator=(src);             //apel op+ din clasa baza
+        this->bucati = src.bucati;
+        this->cercetator = src.cercetator;
+        return *this;
+    }
+
 };
 
 
@@ -241,8 +280,8 @@ int main()
     Vaccin v4;
     cout << endl;
     cin >> v4;
+    cout << v4;
+
+    VaccinRubeola vr1();
 
 }
-
-
-
